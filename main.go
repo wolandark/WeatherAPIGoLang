@@ -103,6 +103,7 @@ func main() {
 	r.GET("/weather/latest/:cityName", getLatestWeatherByCity)
 
 	r.POST("/weather", createWeather)
+	r.PUT("/weather/:id", updateWeather)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -223,4 +224,79 @@ func fetchWeatherFromAPI(city, country string) (*WeatherAPIResponse, error) {
 	}
 
 	return &weatherData, nil
+}
+
+func updateWeather(c *gin.Context) {
+	id := c.Param("id")
+	var weather Weather
+
+	result := db.First(&weather, "id = ?", id)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Weather record not found"})
+			return
+		}
+		log.Printf("Error fetching weather record: %v", result.Error)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch weather record"})
+		return
+	}
+
+	var updateData map[string]interface{}
+	if err := c.ShouldBindJSON(&updateData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if temp, ok := updateData["temperature"]; ok {
+		if tempFloat, err := parseFloat(temp); err == nil {
+			weather.Temperature = tempFloat
+		}
+	}
+	if desc, ok := updateData["description"]; ok {
+		if descStr, ok := desc.(string); ok {
+			weather.Description = descStr
+		}
+	}
+	if hum, ok := updateData["humidity"]; ok {
+		if humInt, err := parseInt(hum); err == nil {
+			weather.Humidity = humInt
+		}
+	}
+	if wind, ok := updateData["windSpeed"]; ok {
+		if windFloat, err := parseFloat(wind); err == nil {
+			weather.WindSpeed = windFloat
+		}
+	}
+
+	result = db.Save(&weather)
+	if result.Error != nil {
+		log.Printf("Error updating weather record: %v", result.Error)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update weather record"})
+		return
+	}
+
+	log.Printf("Weather record updated for ID: %s", id)
+	c.JSON(http.StatusOK, weather)
+}
+
+func parseFloat(value interface{}) (float64, error) {
+	switch v := value.(type) {
+	case float64:
+		return v, nil
+	case string:
+		return strconv.ParseFloat(v, 64)
+	default:
+		return 0, fmt.Errorf("cannot convert to float64")
+	}
+}
+
+func parseInt(value interface{}) (int, error) {
+	switch v := value.(type) {
+	case float64:
+		return int(v), nil
+	case string:
+		return strconv.Atoi(v)
+	default:
+		return 0, fmt.Errorf("cannot convert to int")
+	}
 }
