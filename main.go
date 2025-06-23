@@ -102,6 +102,8 @@ func main() {
 	r.GET("/weather/:id", getWeatherByID)
 	r.GET("/weather/latest/:cityName", getLatestWeatherByCity)
 
+	r.POST("/weather", createWeather)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
