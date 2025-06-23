@@ -104,6 +104,7 @@ func main() {
 
 	r.POST("/weather", createWeather)
 	r.PUT("/weather/:id", updateWeather)
+	r.DELETE("/weather/:id", deleteWeather)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -299,4 +300,23 @@ func parseInt(value interface{}) (int, error) {
 	default:
 		return 0, fmt.Errorf("cannot convert to int")
 	}
+}
+
+func deleteWeather(c *gin.Context) {
+	id := c.Param("id")
+
+	result := db.Delete(&Weather{}, "id = ?", id)
+	if result.Error != nil {
+		log.Printf("Error deleting weather record: %v", result.Error)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete weather record"})
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Weather record not found"})
+		return
+	}
+
+	log.Printf("Weather record deleted for ID: %s", id)
+	c.JSON(http.StatusOK, gin.H{"message": "Weather record deleted successfully"})
 }
