@@ -1,0 +1,11 @@
+.idea/
+.vs/
+.vscode/
+*.swp
+*.swo
+*~
+.vimrc
+*.un~
+*.todo
+notes.txt
+TODO.txt
