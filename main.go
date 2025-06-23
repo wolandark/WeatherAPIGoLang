@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -34,33 +35,18 @@ type WeatherRequest struct {
 	Country  string `json:"country" binding:"required"`
 }
 
-type OpenWeatherResponse struct {
-	Main struct {
-		Temp     float64 `json:"temp"`
-		Humidity int     `json:"humidity"`
-	} `json:"main"`
-	Weather []struct {
-		Description string `json:"description"`
-	} `json:"weather"`
-	Wind struct {
-		Speed float64 `json:"speed"`
-	} `json:"wind"`
-	Sys struct {
+type WeatherAPIResponse struct {
+	Location struct {
+		Name    string `json:"name"`
 		Country string `json:"country"`
-	} `json:"sys"`
-	Name string `json:"name"`
+	} `json:"location"`
+	Current struct {
+		TempC     float64 `json:"temp_c"`
+		Humidity  int     `json:"humidity"`
+		WindKph   float64 `json:"wind_kph"`
+		Condition struct {
+			Text string `json:"text"`
+		} `json:"condition"`
+	} `json:"current"`
 }
 
-
-
-
-
-
-
-
-
-
-
-func main() {
-	//
-}
