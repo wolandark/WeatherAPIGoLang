@@ -94,4 +94,131 @@ func main() {
 	db.AutoMigrate(&Weather{})
 
 	log.Println("Database connected and migrated successfully")
+
+
+	r := gin.Default()
+
+	r.GET("/weather", getAllWeather)
+	r.GET("/weather/:id", getWeatherByID)
+	r.GET("/weather/latest/:cityName", getLatestWeatherByCity)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("Server starting on port %s", port)
+	r.Run(":" + port)
+}
+
+
+func getAllWeather(c *gin.Context) {
+	var weather []Weather
+	result := db.Find(&weather)
+	if result.Error != nil {
+		log.Printf("Error fetching weather records: %v", result.Error)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch weather records"})
+		return
+	}
+
+	c.JSON(http.StatusOK, weather)
+}
+
+func getWeatherByID(c *gin.Context) {
+	id := c.Param("id")
+	var weather Weather
+
+	result := db.First(&weather, "id = ?", id)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Weather record not found"})
+			return
+		}
+		log.Printf("Error fetching weather record: %v", result.Error)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch weather record"})
+		return
+	}
+
+	c.JSON(http.StatusOK, weather)
+}
+
+func getLatestWeatherByCity(c *gin.Context) {
+	cityName := c.Param("cityName")
+	var weather Weather
+
+	result := db.Where("city_name = ?", cityName).Order("fetched_at desc").First(&weather)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "No weather records found for this city"})
+			return
+		}
+		log.Printf("Error fetching latest weather record: %v", result.Error)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch weather record"})
+		return
+	}
+
+	c.JSON(http.StatusOK, weather)
+}
+
+func createWeather(c *gin.Context) {
+	var req WeatherRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	weatherData, err := fetchWeatherFromAPI(req.CityName, req.Country)
+	if err != nil {
+		log.Printf("Error fetching weather from API: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to fetch weather data"})
+		return
+	}
+
+	weather := Weather{
+		ID:          uuid.New().String(),
+		CityName:    weatherData.Location.Name,
+		Country:     weatherData.Location.Country,
+		Temperature: weatherData.Current.TempC,
+		Description: weatherData.Current.Condition.Text,
+		Humidity:    weatherData.Current.Humidity,
+		WindSpeed:   weatherData.Current.WindKph,
+		FetchedAt:   time.Now(),
+	}
+
+	result := db.Create(&weather)
+	if result.Error != nil {
+		log.Printf("Error saving weather record: %v", result.Error)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save weather record"})
+		return
+	}
+
+	log.Printf("Weather record created for %s, %s", weather.CityName, weather.Country)
+	c.JSON(http.StatusCreated, weather)
+}
+
+func fetchWeatherFromAPI(city, country string) (*WeatherAPIResponse, error) {
+	apiKey := os.Getenv("WEATHER_API_KEY")
+	url := fmt.Sprintf("http://api.weatherapi.com/v1/current.json?key=%s&q=%s,%s", apiKey, city, country)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("WeatherAPI returned status: %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var weatherData WeatherAPIResponse
+	if err := json.Unmarshal(body, &weatherData); err != nil {
+		return nil, err
+	}
+
+	return &weatherData, nil
 }
