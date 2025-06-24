@@ -10,4 +10,5 @@
 notes.txt
 TODO.txt
 .env
-Stash
+Stash/
+weather-api
