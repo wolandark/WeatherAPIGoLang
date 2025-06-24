@@ -2,6 +2,18 @@
 
 A REST API for storing and retrieving weather data using Go, Gin, and GORM with Mariadb database.
 
+# Notes For The Reviewer
+
+MariaDB is preferred over PostgreSQL due to the simple fact that I already had its Go module installed. JWT authentication, though rudimentary and fairly straightforward to implement, was skipped due to current internet disruptions. The same applies to deployment.
+
+No AI agents, LLMs, or similar tools were used in coding this project, except for translating my test bash script to PowerShell, which I could have done manually, but who has time for PowerShell, right?
+
+I also had to choose https://www.weatherapi.com/my/ over OpenWeatherMap due to the same internet issues. It's free, easy to sign up for, and does the job perfectly for this demo.
+
+Dockerization would have been included if more time was available, yet war has delayed us enough. A docker-compose setup is a manageable task, I'll provide one, though I cannot thoroughly test it. I'm fairly confident it will work.
+
+AI was used to fix minor syntax issues in docker-compose.yml, since I currently have no yml linter installed. (Even if I did , I take no shame in using ai for yml, yml is an insult to humanity itself)
+
 ## Prerequisites
 
 - Go 24.04
@@ -39,6 +51,33 @@ A .env.example file is provided as a guide.
 5. Run the application:
 ```bash
 go run cmd/server/main.go
+```
+
+# Running with Docker
+
+Use `docker compose build` to build the image. 
+
+Use `docker compose up` to run the image.
+
+Or:
+
+`docker-compose up --build`
+
+Use cURL or postman to test. 
+
+Ex: `http://localhost:8080/weather`
+
+The Provided test scripts should also work.
+
+The `.env` file may also need to be updated when using the docker compose.
+```env
+WEATHER_API_KEY=key  
+DB_USER=root
+DB_PASSWORD=rootpassword
+DB_HOST=db
+DB_PORT=3306
+DB_NAME=weather_db
+PORT=8080
 ```
 
 The server will start on the specified port (default: 8080) and automatically create the required database tables.
