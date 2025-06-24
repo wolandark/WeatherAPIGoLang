@@ -8,7 +8,7 @@ MariaDB is preferred over PostgreSQL due to the simple fact that I already had i
 
 No AI agents, LLMs, or similar tools were used in coding this project, except for translating my test bash script to PowerShell, which I could have done manually, but who has time for PowerShell, right?
 
-I also had to choose https://www.weatherapi.com/my/ over OpenWeatherMap due to the same internet issues. It's free, easy to sign up for, and does the job perfectly for this demo.
+I also had to choose https://www.weatherapi.com/ over OpenWeatherMap due to the same internet issues. It's free, easy to sign up for, and does the job perfectly for this demo.
 
 Dockerization would have been included if more time was available, yet war has delayed us enough. A docker-compose setup is a manageable task, I'll provide one, though I cannot thoroughly test it. I'm fairly confident it will work.
 
