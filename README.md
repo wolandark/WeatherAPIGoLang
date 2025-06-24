@@ -83,10 +83,11 @@ Deletes a weather record by ID.
 
 ## Testing
 
-Automated test scripts are available in the `Test` folder:
+Automated test scripts are available in the `Tests` folder:
 - Linux/macOS: Run the shell script
     - The Linux Bash script requires the jq command line tool
 - Windows: Run the powershell script
+    - The powershell test script must be run from powershell (duh). Its best to use powershell 7
 
 Both scripts require cURL. These scripts execute curl commands to test all API endpoints.
 
