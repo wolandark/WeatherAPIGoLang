@@ -8,4 +8,6 @@
 *.un~
 *.todo
 notes.txt
-TODO.txt.env
+TODO.txt
+.env
+Stash
