@@ -1,0 +1,38 @@
+version: '3.9'
+
+services:
+  db:
+    image: mariadb:11
+    container_name: weather-mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: weather_db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: rootpassword
+    ports:
+      # - "3306:3306"
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  api:
+    build: .
+    container_name: weather-api
+    depends_on:
+      - db
+    environment:
+      DB_USER: root
+      DB_PASSWORD: rootpassword
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: weather_db
+      WEATHER_API_KEY: your_api_key_here
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    restart: always
+
+volumes:
+  db_data:
+
