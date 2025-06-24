@@ -38,7 +38,7 @@ A .env.example file is provided as a guide.
 
 5. Run the application:
 ```bash
-go run main.go
+go run cmd/server/main.go
 ```
 
 The server will start on the specified port (default: 8080) and automatically create the required database tables.
